@@ -1,0 +1,27 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment
+        android:id="@+id/adFragment"
+        android:name="com.frames.screens.BaseScreen$AdFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"/>
+
+    <include layout="@layout/layout_header"/>
+
+    <ListView
+        android:id="@+id/category_list"
+        android:layout_below="@+id/header"
+        android:layout_above="@+id/footer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/button_material_dark"/>
+
+    <include layout="@layout/layout_footer" />
+
+</RelativeLayout>
