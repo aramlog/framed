@@ -12,14 +12,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"/>
 
-    <include layout="@layout/layout_header"/>
-
     <com.frames.utils.widgets.HeaderGridView
         android:background="@color/common_action_bar_splitter"
         android:id="@+id/frames_grid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/header"
+        android:layout_below="@+id/adFragment"
         android:numColumns="2"
         android:horizontalSpacing="15dp"
         android:paddingLeft="15dp"

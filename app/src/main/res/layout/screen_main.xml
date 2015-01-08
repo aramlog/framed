@@ -12,16 +12,11 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"/>
 
-    <include layout="@layout/layout_header"/>
-
     <ListView
         android:id="@+id/category_list"
-        android:layout_below="@+id/header"
-        android:layout_above="@+id/footer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@color/button_material_dark"/>
 
-    <include layout="@layout/layout_footer" />
 
 </RelativeLayout>

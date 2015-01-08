@@ -1,7 +1,11 @@
 package com.frames.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,6 +27,7 @@ public class FramesScreen extends BaseScreen {
     private FrameAdapter frameAdapter;
     private HeaderGridView framesGrid;
 
+    private List<FrameItem> frames;
     private int offset = 15;
     private int categoryId;
 
@@ -30,6 +35,9 @@ public class FramesScreen extends BaseScreen {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.screen_frames);
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         ImageLoader.getInstance().init(new ImageLoaderConfiguration.Builder(this)
                 .threadPriority(Thread.NORM_PRIORITY - 2)
@@ -42,7 +50,7 @@ public class FramesScreen extends BaseScreen {
 
         categoryId = getIntent().getIntExtra("category_id", 1);
 
-        ((TextView) findViewById(R.id.header).findViewById(R.id.title)).setText(categories.get(categoryId));
+        actionBar.setTitle(categories.get(categoryId));
 
         //thumb 199x266
         int columnWidth = (AndroidUtils.getScreenWidth(this) - AndroidUtils.dpToPx(offset) * 3) / 2;
@@ -56,6 +64,17 @@ public class FramesScreen extends BaseScreen {
         framesGrid.addHeaderView(framesGridHeader);
         frameAdapter = new FrameAdapter(this, columnWidth, columnHeight);
 
+        framesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(frames != null) {
+                    Intent intent = new Intent(FramesScreen.this, FrameScreen.class);
+                    intent.putExtra("url", frames.get(position).getImage());
+                    intent.putExtra("title", frames.get(position).getTitle());
+                    startActivity(intent);
+                }
+            }
+        });
         loadFrames();
     }
 
@@ -64,7 +83,7 @@ public class FramesScreen extends BaseScreen {
             @Override
             public void run() {
                 try {
-                    final List<FrameItem> frames = ApiManager.getInstance().getFrames(categoryId);
+                    frames = ApiManager.getInstance().getFrames(categoryId);
                     FramesScreen.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
