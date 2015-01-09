@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.util.FloatMath;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -68,31 +69,7 @@ public class FrameScreen extends BaseScreen {
         image = (ImageView) findViewById(R.id.image);
         frame = (ImageView) findViewById(R.id.frame);
 
-        frame.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
-            }
-        });
-
-        ImageLoader.getInstance().loadImage(frameURL, new ImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String s, View view, Bitmap bitmap) {
-            }
-
-            @Override
-            public void onLoadingStarted(String s, View view) {
-            }
-
-            @Override
-            public void onLoadingFailed(String s, View view, FailReason failReason) {
-            }
-
-            @Override
-            public void onLoadingCancelled(String s, View view) {
-            }
-        });
+        ImageLoader.getInstance().loadImage(frameURL,null);
         ImageLoader.getInstance().displayImage(frameURL, frame, AppManager.getInstance().options);
     }
 
@@ -104,14 +81,38 @@ public class FrameScreen extends BaseScreen {
                 image.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
-                        return onTouch(v, event);
+                        frame.setVisibility(View.GONE);
+                        return onTouchHandler(v, event);
                     }
                 });
             }
         }
     }
 
-    public boolean onTouch(View v, MotionEvent event) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_camera:
+                openCamera();
+                return true;
+            case R.id.action_gallery:
+                openGallery();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void openCamera() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
+    }
+
+    private void openGallery() {
+
+    }
+
+    public boolean onTouchHandler(View v, MotionEvent event) {
         // handle touch events here
         ImageView view = (ImageView) v;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {

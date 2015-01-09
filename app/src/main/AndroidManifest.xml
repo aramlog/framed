@@ -21,12 +21,14 @@
 
         <activity
             android:name=".screens.FramesScreen"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:parentActivityName=".screens.MainScreen">
         </activity>
 
         <activity
             android:name=".screens.FrameScreen"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:parentActivityName=".screens.FramesScreen">
         </activity>
 
         <activity android:name="com.google.android.gms.ads.AdActivity"

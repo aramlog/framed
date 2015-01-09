@@ -3,6 +3,8 @@ package com.frames.screens;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -21,6 +23,7 @@ public class MainScreen extends BaseScreen {
 
         ActionBar actionBar = getSupportActionBar();
 
+        actionBar.setIcon(R.drawable.ic_launcher);
         categoryListView = (ListView) findViewById(R.id.category_list);
         categoryListView.setAdapter(new ArrayAdapter<String>(this, R.layout.item_category, R.id.title, getResources().getStringArray(R.array.categories)));
 
