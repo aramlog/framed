@@ -1,6 +1,7 @@
 package com.frames.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import com.frames.R;
 import com.frames.items.FrameItem;
 import com.frames.managers.AppManager;
+import com.frames.screens.FrameScreen;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
@@ -104,6 +106,16 @@ public class FrameAdapter extends BaseAdapter {
         }
 
         holder.title.setText(frame.getTitle());
+
+        holder.image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mContext, FrameScreen.class);
+                intent.putExtra("url", frame.getImage());
+                intent.putExtra("title", frame.getTitle());
+                mContext.startActivity(intent);
+            }
+        });
 
         return convertView;
     }

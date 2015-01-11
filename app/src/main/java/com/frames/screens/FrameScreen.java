@@ -3,55 +3,71 @@ package com.frames.screens;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.graphics.PointF;
+import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
-import android.util.FloatMath;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.frames.R;
 import com.frames.managers.AppManager;
+import com.frames.utils.AndroidUtils;
+import com.frames.utils.ImageUtils;
+import com.frames.utils.widgets.CameraPreview;
+import com.frames.utils.widgets.MultiTouchImage;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-public class FrameScreen extends BaseScreen {
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, Camera.PictureCallback {
+
+    private int MAX_HEIGHT = 1080;
+    private int MAX_WIDTH = 1080;
+
+    private int CAMERA_PIC_REQUEST = 5000;
+    private int GALLERY_PIC_REQUEST = 6000;
 
     private ImageView image;
     private ImageView frame;
 
-    private int CAMERA_PIC_REQUEST = 5000;
+    private MenuItem cameraMenu;
+    private MenuItem galleryMenu;
 
-    // these matrices will be used to move and zoom image
-    private Matrix matrix = new Matrix();
-    private Matrix savedMatrix = new Matrix();
+    private Button rotateCameraBtn;
+    private Button snapshotBtn;
 
-    // we can be in one of these 3 states
-    private static final int NONE = 0;
-    private static final int DRAG = 1;
-    private static final int ZOOM = 2;
-    private int mode = NONE;
-    // remember some things for zooming
-    private PointF start = new PointF();
-    private PointF mid = new PointF();
-    private float oldDist = 1f;
-    private float d = 0f;
-    private float newRot = 0f;
-    private float[] lastEvent = null;
+    private CameraPreview cameraPreview;
+    private FrameLayout cameraContainer;
+    private RelativeLayout buttonsContainer;
+
+    private MultiTouchImage multiTouchImage = new MultiTouchImage();
+
+    private Matrix matrixHolder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.screen_frame);
 
+        MAX_WIDTH = AndroidUtils.getScreenWidth(this);
+        MAX_HEIGHT = AndroidUtils.getScreenHeight(this);
+
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        //actionBar.setDisplayHomeAsUpEnabled(true);
 
         ImageLoader.getInstance().init(new ImageLoaderConfiguration.Builder(this)
                 .threadPriority(Thread.NORM_PRIORITY - 2)
@@ -69,25 +85,107 @@ public class FrameScreen extends BaseScreen {
         image = (ImageView) findViewById(R.id.image);
         frame = (ImageView) findViewById(R.id.frame);
 
+        rotateCameraBtn = (Button) findViewById(R.id.rotate_camera_btn);
+        snapshotBtn = (Button) findViewById(R.id.snapshot_btn);
+
+        cameraPreview = new CameraPreview(this);
+        buttonsContainer = (RelativeLayout) findViewById(R.id.buttons_container);
+        cameraContainer = ((FrameLayout) findViewById(R.id.camera_container));
+        cameraContainer.addView(cameraPreview);
+
+        image.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return multiTouchImage.onTouchHandler(v, event);
+            }
+        });
+
+        rotateCameraBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cameraPreview.switchCamera();
+                if(cameraPreview.isFront()) {
+                    rotateCameraBtn.setText("Back Camera");
+                } else {
+                    rotateCameraBtn.setText("Front Camera");
+                }
+            }
+        });
+
+        snapshotBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cameraPreview.getCamera().takePicture(FrameScreen.this, null, null, FrameScreen.this);
+            }
+        });
+
         ImageLoader.getInstance().loadImage(frameURL,null);
         ImageLoader.getInstance().displayImage(frameURL, frame, AppManager.getInstance().options);
+
+        cameraContainer.setVisibility(View.GONE);
+        buttonsContainer.setVisibility(View.GONE);
+
+        matrixHolder = image.getMatrix();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        cameraPreview.releaseCamera();
+    }
+
+    @Override
+    public void onShutter() {
+    }
+
+    @Override
+    public void onPictureTaken(byte[] data, Camera camera) {
+        Bitmap bitmap = ImageUtils.decodeBitmap(data, MAX_WIDTH, MAX_HEIGHT);
+
+        if (cameraPreview.isFront()) {
+            image.setImageBitmap(ImageUtils.flipBitmap(ImageUtils.rotateBitmap(bitmap, 270)));
+        } else {
+            image.setImageBitmap(ImageUtils.rotateBitmap(bitmap, 90));
+        }
+
+        image.setImageMatrix(matrixHolder);
+        multiTouchImage.reset();
+
+        //camera.startPreview();
+        cameraPreview.releaseCamera();
+        cameraContainer.setVisibility(View.GONE);
+        buttonsContainer.setVisibility(View.GONE);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == CAMERA_PIC_REQUEST) {
-                Bitmap photo = (Bitmap) data.getExtras().get("data");
-                image.setImageBitmap(photo);
-                image.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        frame.setVisibility(View.GONE);
-                        return onTouchHandler(v, event);
-                    }
-                });
+                Uri selectedImageUri = data.getData();
+                loadExternalImage(selectedImageUri);
+            } else if (requestCode == GALLERY_PIC_REQUEST) {
+                Uri selectedImageUri = data.getData();
+                loadExternalImage(selectedImageUri);
             }
         }
     }
+
+    private void loadExternalImage(Uri imageUri) {
+        try {
+            Bitmap bitmap = ImageUtils.decodeBitmap(this, imageUri, MAX_WIDTH, MAX_HEIGHT);
+            image.setImageBitmap(bitmap);
+            image.setImageMatrix(matrixHolder);
+            multiTouchImage.reset();
+
+            cameraContainer.setVisibility(View.GONE);
+            buttonsContainer.setVisibility(View.GONE);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -104,104 +202,32 @@ public class FrameScreen extends BaseScreen {
     }
 
     private void openCamera() {
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
+        cameraContainer.setVisibility(View.VISIBLE);
+        buttonsContainer.setVisibility(View.VISIBLE);
+
+        cameraPreview.getCamera().startPreview();
+//        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(cameraIntent, CAMERA_PIC_REQUEST);
     }
 
     private void openGallery() {
-
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), GALLERY_PIC_REQUEST);
     }
 
-    public boolean onTouchHandler(View v, MotionEvent event) {
-        // handle touch events here
-        ImageView view = (ImageView) v;
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
-                savedMatrix.set(matrix);
-                start.set(event.getX(), event.getY());
-                mode = DRAG;
-                lastEvent = null;
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                oldDist = spacing(event);
-                if (oldDist > 10f) {
-                    savedMatrix.set(matrix);
-                    midPoint(mid, event);
-                    mode = ZOOM;
-                }
-                lastEvent = new float[4];
-                lastEvent[0] = event.getX(0);
-                lastEvent[1] = event.getX(1);
-                lastEvent[2] = event.getY(0);
-                lastEvent[3] = event.getY(1);
-                d = rotation(event);
-                break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-                mode = NONE;
-                lastEvent = null;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (mode == DRAG) {
-                    matrix.set(savedMatrix);
-                    float dx = event.getX() - start.x;
-                    float dy = event.getY() - start.y;
-                    matrix.postTranslate(dx, dy);
-                } else if (mode == ZOOM) {
-                    float newDist = spacing(event);
-                    if (newDist > 10f) {
-                        matrix.set(savedMatrix);
-                        float scale = (newDist / oldDist);
-                        matrix.postScale(scale, scale, mid.x, mid.y);
-                    }
-                    if (lastEvent != null && event.getPointerCount() == 2) {
-                        newRot = rotation(event);
-                        float r = newRot - d;
-                        float[] values = new float[9];
-                        matrix.getValues(values);
-                        float tx = values[2];
-                        float ty = values[5];
-                        float sx = values[0];
-                        float xc = (view.getWidth() / 2) * sx;
-                        float yc = (view.getHeight() / 2) * sx;
-                        matrix.postRotate(r, xc, yc);
-                    }
-                }
-                break;
-        }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
 
-        view.setImageMatrix(matrix);
-        return true;
+        cameraMenu = menu.findItem(R.id.action_camera);
+        galleryMenu = menu.findItem(R.id.action_gallery);
+
+        cameraMenu.setVisible(true);
+        galleryMenu.setVisible(true);
+
+        return super.onCreateOptionsMenu(menu);
     }
 
-    /**
-     * Determine the space between the first two fingers
-     */
-    private float spacing(MotionEvent event) {
-        float x = event.getX(0) - event.getX(1);
-        float y = event.getY(0) - event.getY(1);
-        return FloatMath.sqrt(x * x + y * y);
-    }
-
-    /**
-     * Calculate the mid point of the first two fingers
-     */
-    private void midPoint(PointF point, MotionEvent event) {
-        float x = event.getX(0) + event.getX(1);
-        float y = event.getY(0) + event.getY(1);
-        point.set(x / 2, y / 2);
-    }
-
-    /**
-     * Calculate the degree to be rotated by.
-     *
-     * @param event
-     * @return Degrees
-     */
-    private float rotation(MotionEvent event) {
-        double delta_x = (event.getX(0) - event.getX(1));
-        double delta_y = (event.getY(0) - event.getY(1));
-        double radians = Math.atan2(delta_y, delta_x);
-        return (float) Math.toDegrees(radians);
-    }
 }

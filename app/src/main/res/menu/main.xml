@@ -4,13 +4,11 @@
     tools:context="am.app.MainActivity" >
     
     <item android:id="@+id/action_gallery"
-          android:icon="@drawable/ab_button_gallery"
-          android:title="Camera"
+          android:title="Gallery"
           app:showAsAction="always"
           android:visible="false" />
 
     <item android:id="@+id/action_camera"
-        android:icon="@drawable/ab_button_camera"
         android:title="Camera"
         app:showAsAction="always"
         android:visible="false" />

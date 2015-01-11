@@ -37,7 +37,7 @@ public class FramesScreen extends BaseScreen {
         setContentView(R.layout.screen_frames);
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        //actionBar.setDisplayHomeAsUpEnabled(true);
 
         ImageLoader.getInstance().init(new ImageLoaderConfiguration.Builder(this)
                 .threadPriority(Thread.NORM_PRIORITY - 2)
@@ -64,17 +64,6 @@ public class FramesScreen extends BaseScreen {
         framesGrid.addHeaderView(framesGridHeader);
         frameAdapter = new FrameAdapter(this, columnWidth, columnHeight);
 
-        framesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(frames != null) {
-                    Intent intent = new Intent(FramesScreen.this, FrameScreen.class);
-                    intent.putExtra("url", frames.get(position).getImage());
-                    intent.putExtra("title", frames.get(position).getTitle());
-                    startActivity(intent);
-                }
-            }
-        });
         loadFrames();
     }
 
