@@ -2,7 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="am.app.MainActivity" >
-    
+
+    <!-- first menu -->
     <item android:id="@+id/action_gallery"
           android:title="Gallery"
           app:showAsAction="always"
@@ -11,6 +12,33 @@
     <item android:id="@+id/action_camera"
         android:title="Camera"
         app:showAsAction="always"
+        android:visible="false"/>
+
+    <!-- second menu -->
+    <item android:id="@+id/action_effects"
+        android:title="Effects"
+        app:showAsAction="always"
         android:visible="false" />
 
+    <item android:id="@+id/action_cancel"
+        android:title="Cancel"
+        app:showAsAction="always"
+        android:visible="false"/>
+
+    <item android:id="@+id/action_done"
+        android:title="Done"
+        app:showAsAction="always"
+        android:visible="false" />
+
+
+    <!-- Third menu -->
+    <item android:id="@+id/action_edit"
+        android:title="Edit"
+        app:showAsAction="always"
+        android:visible="false" />
+
+    <item android:id="@+id/action_share"
+        android:title="Share"
+        app:showAsAction="always"
+        android:visible="false" />
 </menu>

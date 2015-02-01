@@ -4,15 +4,24 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
+import android.view.View;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class ImageUtils {
+
+    public static Bitmap loadBitmapFromView(View v) {
+        Bitmap b = Bitmap.createBitmap(v.getLayoutParams().width, v.getLayoutParams().height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        v.layout(0, 0, v.getLayoutParams().width, v.getLayoutParams().height);
+        v.draw(c);
+        return b;
+    }
 
     public static Bitmap flipBitmap(Bitmap bitmap) {
         Matrix matrix = new Matrix();
@@ -84,7 +93,7 @@ public class ImageUtils {
         BitmapFactory.decodeByteArray(data, 0, data.length, options);
         options.inSampleSize = ImageUtils.calculateInSampleSize(options, reqWidth, reqHeight);
         options.inJustDecodeBounds = false;
-        return  BitmapFactory.decodeByteArray(data, 0, data.length, options);
+        return BitmapFactory.decodeByteArray(data, 0, data.length, options);
     }
 
     public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -94,9 +103,8 @@ public class ImageUtils {
         int inSampleSize = 1;
 
         if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
+            final int halfHeight = (int) (height / 1.5);
+            final int halfWidth = (int) (width / 1.5);
 
             // Calculate the largest inSampleSize value that is a power of 2 and keeps both
             // height and width larger than the requested height and width.

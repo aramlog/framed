@@ -1,15 +1,17 @@
 <resources>
     <string name="app_name">Frames</string>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="interstitial_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
 
     <string-array name="categories">
+        <item>All Frames</item>
         <item>Adult Humor</item>
         <item>Animals</item>
         <item>Circus</item>
         <item>Dreams</item>
         <item>Fairy Tales</item>
         <item>Holidays</item>
-        <item>Monsters &amp; Dinosaurs</item>
+        <item>Monsters And Dinosaurs</item>
         <item>Music</item>
         <item>Robots</item>
         <item>Space</item>

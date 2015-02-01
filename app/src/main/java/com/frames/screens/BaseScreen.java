@@ -2,10 +2,12 @@ package com.frames.screens;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,6 +19,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BaseScreen extends ActionBarActivity {
+
+    protected MenuItem cameraMenu;
+    protected MenuItem galleryMenu;
+    protected MenuItem editMenu;
+    protected MenuItem shareMenu;
+    protected MenuItem effectsMenu;
+    protected MenuItem doneMenu;
+    protected MenuItem cancelMenu;
+
+    protected ActionBar actionBar;
 
     protected static Map<Integer, String> categories = new HashMap<Integer, String>();
 
@@ -58,8 +70,21 @@ public class BaseScreen extends ActionBarActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
 
-        menu.findItem(R.id.action_camera).setVisible(true);
-        menu.findItem(R.id.action_gallery).setVisible(true);
+        cameraMenu = menu.findItem(R.id.action_camera);
+        galleryMenu = menu.findItem(R.id.action_gallery);
+        editMenu = menu.findItem(R.id.action_edit);
+        shareMenu = menu.findItem(R.id.action_share);
+        effectsMenu = menu.findItem(R.id.action_effects);
+        doneMenu = menu.findItem(R.id.action_done);
+        cancelMenu = menu.findItem(R.id.action_cancel);
+
+        cameraMenu.setVisible(false);
+        galleryMenu.setVisible(false);
+        editMenu.setVisible(false);
+        shareMenu.setVisible(false);
+        effectsMenu.setVisible(false);
+        doneMenu.setVisible(false);
+        cancelMenu.setVisible(false);
 
         return super.onCreateOptionsMenu(menu);
     }

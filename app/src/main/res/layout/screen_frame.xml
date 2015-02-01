@@ -15,24 +15,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="matrix"
-        android:background="#ffffff" />
+        android:background="#FFFFFF" />
 
     <FrameLayout
         android:id="@+id/camera_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="false"/>
+        android:clickable="false" />
 
     <ImageView
         android:id="@+id/frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:clickable="false" />
+        android:clickable="false"/>
 
+    <ImageView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:background="#FFFFFF"
+        android:scaleType="centerCrop"
+        android:visibility="gone"/>
 
     <RelativeLayout
-        android:id="@+id/buttons_container"
+        android:id="@+id/camera_controllers"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -46,18 +54,60 @@
             android:padding="10dp">
 
             <Button
+                android:id="@+id/cancel_camera_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel"
+                android:onClick="onClickCancelCamera" />
+
+            <Button
+                android:id="@+id/capture_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Capture"
+                android:onClick="onClickCapture" />
+
+            <Button
                 android:id="@+id/rotate_camera_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Front Camera" />
-
-            <Button
-                android:id="@+id/snapshot_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Take Photo" />
+                android:text="Rotate"
+                android:onClick="onClickRotateCamera" />
 
         </LinearLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/filters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#A000"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/close_filters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:onClick="onClickCloseFilters"
+            android:layout_centerVertical="true"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/close_filters"
+            android:scrollbars="none"
+            android:fadingEdge="none">
+
+            <LinearLayout
+                android:id="@+id/filters_container"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </HorizontalScrollView>
 
     </RelativeLayout>
 

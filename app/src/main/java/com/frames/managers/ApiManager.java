@@ -131,5 +131,10 @@ public class ApiManager {
         String URL = BASE_URL + "?id="+categoryId;
         return getResponseGet(URL, new TypeReference<List<FrameItem>>() {});
     }
+
+    public List<FrameItem> getAllFrames() {
+        String URL = BASE_URL + "?id=all";
+        return getResponseGet(URL, new TypeReference<List<FrameItem>>() {});
+    }
 }
 

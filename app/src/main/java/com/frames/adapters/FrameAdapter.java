@@ -4,18 +4,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.frames.R;
 import com.frames.items.FrameItem;
 import com.frames.managers.AppManager;
 import com.frames.screens.FrameScreen;
+import com.frames.utils.AndroidUtils;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
@@ -31,6 +34,8 @@ public class FrameAdapter extends BaseAdapter {
 
     private int columnWidth;
     private int columnHeight;
+
+    public boolean allowLoading = true;
 
     public FrameAdapter(Context context, int columnWidth, int columnHeight) {
         this(context);
@@ -72,47 +77,54 @@ public class FrameAdapter extends BaseAdapter {
             holder = new ViewHolder();
 
             convertView = mInflater.inflate(R.layout.item_frame, null);
-            convertView.setLayoutParams(new GridView.LayoutParams(columnWidth, columnHeight));
+            convertView.setLayoutParams(new GridView.LayoutParams(columnWidth, columnHeight + AndroidUtils.dpToPx(30)));
 
             holder.title = (TextView) convertView.findViewById(R.id.title);
             holder.image = (ImageView) convertView.findViewById(R.id.image);
-
+            holder.image.setLayoutParams(new RelativeLayout.LayoutParams(columnWidth, columnHeight));
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        final int pos = position;
         holder.image.setImageBitmap(null);
         if (!frame.isLoaded) {
-            holder.image.setBackgroundResource(R.drawable.loader_borders);
-            ImageLoader.getInstance().loadImage(frame.getThumb(), new ImageLoadingListener() {
-                @Override
-                public void onLoadingComplete(String s, View view, Bitmap bitmap) {
-                    frame.isLoaded = true;
-                    ImageLoader.getInstance().displayImage(frame.getThumb(), holder.image, AppManager.getInstance().options);
-                }
-                @Override
-                public void onLoadingStarted(String s, View view) {
-                }
-                @Override
-                public void onLoadingFailed(String s, View view, FailReason failReason) {
-                }
-                @Override
-                public void onLoadingCancelled(String s, View view) {
-                }
-            });
+            //holder.image.setBackgroundResource(R.drawable.loader_borders);
+            if (allowLoading) {
+                ImageLoader.getInstance().loadImage(frame.getThumb(), new ImageLoadingListener() {
+                    @Override
+                    public void onLoadingComplete(String s, View view, Bitmap bitmap) {
+                        frame.isLoaded = true;
+                        //Log.e("Frame:", pos + "). '" + frame.getTitle() + "' image loaded");
+                        ImageLoader.getInstance().displayImage(frame.getThumb(), holder.image, AppManager.getInstance().options);
+                    }
+
+                    @Override
+                    public void onLoadingStarted(String s, View view) {
+                    }
+
+                    @Override
+                    public void onLoadingFailed(String s, View view, FailReason failReason) {
+                    }
+
+                    @Override
+                    public void onLoadingCancelled(String s, View view) {
+                    }
+                });
+            }
         } else {
             ImageLoader.getInstance().displayImage(frame.getThumb(), holder.image, AppManager.getInstance().options);
         }
 
-        holder.title.setText(frame.getTitle());
-
+        holder.title.setText(frame.getTitle().toUpperCase());
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, FrameScreen.class);
                 intent.putExtra("url", frame.getImage());
-                intent.putExtra("title", frame.getTitle());
+                intent.putExtra("title", frame.getCategory());
+                intent.putExtra("subtitle", frame.getTitle());
                 mContext.startActivity(intent);
             }
         });

@@ -43,8 +43,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     public void switchCamera() {
         isFront = !isFront;
-        releaseCamera();
+        startCamera();
+    }
 
+    public void startCamera() {
+        releaseCamera();
         mCamera = getCameraInstance();
         try {
             Camera.Parameters parameters = mCamera.getParameters();
@@ -66,7 +69,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             } else {
                 camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
             }
-
         } catch (Exception e) {}
         return camera;
     }
@@ -158,6 +160,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     public Camera getCamera() {
+        if(mCamera == null) {
+            mCamera = getCameraInstance();
+        }
         return mCamera;
     }
 }

@@ -1,6 +1,7 @@
 package com.frames.utils.widgets;
 
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.FloatMath;
@@ -11,23 +12,28 @@ import android.widget.ImageView;
 public class MultiTouchImage {
 
     // these matrices will be used to move and zoom image
-    public Matrix matrix = new Matrix();
-    public Matrix savedMatrix = new Matrix();
+    private Matrix matrix = new Matrix();
+    private Matrix savedMatrix = new Matrix();
 
     // we can be in one of these 3 states
-    public static final int NONE = 0;
-    public static final int DRAG = 1;
-    public static final int ZOOM = 2;
+    private static final int NONE = 0;
+    private static final int DRAG = 1;
+    private static final int ZOOM = 2;
 
-    public int mode = NONE;
+    private int mode = NONE;
 
     // remember some things for zooming
-    public PointF start = new PointF();
-    public PointF mid = new PointF();
-    public float oldDist = 1f;
-    public float d = 0f;
-    public float newRot = 0f;
-    public float[] lastEvent = null;
+    private PointF start = new PointF();
+    private PointF mid = new PointF();
+    private float oldDist = 1f;
+    private float d = 0f;
+    private float newRot = 0f;
+    private float[] lastEvent = null;
+
+
+    public void setMatrix(Matrix matrix) {
+        this.matrix = matrix;
+    }
 
     public void reset() {
         matrix = new Matrix();
@@ -98,7 +104,6 @@ public class MultiTouchImage {
                 }
                 break;
         }
-
         view.setImageMatrix(matrix);
         return true;
     }

@@ -1,22 +1,122 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    tools:ignore="MergeRootFrame">
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/header_bg">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/header_pattern"
+            android:layout_alignParentRight="true"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/header_logo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/ic_launcher"
+            android:layout_margin="6dp" />
+
+        <TextView
+            android:id="@+id/header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/header_logo"
+            android:layout_centerVertical="true"
+            android:textSize="16sp"
+            android:textColor="@color/header_title"
+            android:text="FUNNY FRAMES" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/menu"
+        android:layout_below="@+id/header"
+        android:layout_width="match_parent"
+        android:background="@color/menu_bg"
+        android:layout_height="45dp"
+        android:padding="12dp"
+        android:clickable="true"
+        android:onClick="onClickMenu">
+
+        <TextView
+            android:id="@+id/menu_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textSize="14sp"
+            android:textColor="@color/menu_title"
+            android:text="View: " />
+
+        <TextView
+            android:id="@+id/menu_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/menu_view"
+            android:textSize="14sp"
+            android:textColor="@color/menu_title_selected"
+            android:text="All Frames" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/arrow_down"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/footer_pattern"
+        android:scaleType="fitStart"
+        android:layout_marginBottom="40dp"
+        android:layout_alignParentBottom="true"/>
+
+    <com.frames.utils.widgets.HeaderGridView
+        android:id="@+id/frames_grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:numColumns="2"
+        android:horizontalSpacing="15dp"
+        android:paddingLeft="15dp"
+        android:layout_below="@+id/menu"
+        android:layout_above="@+id/adFragment"
+        android:listSelector="@drawable/transparent"
+        android:stretchMode="none"/>
 
     <fragment
         android:id="@+id/adFragment"
-        android:name="com.frames.screens.BaseScreen$AdFragment"
+        android:name="com.frames.screens.BaseScreen2$AdBannerFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"/>
+        android:layout_alignParentBottom="true" />
 
     <ListView
-        android:id="@+id/category_list"
+        android:id="@+id/menu_items_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@color/button_material_dark"/>
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="none"
+        android:fadingEdge="none"
+        android:visibility="gone"
+        android:layout_below="@+id/menu"/>
 
+    <fragment
+        android:name="com.frames.screens.BaseScreen2$AdInterstitialFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

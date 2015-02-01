@@ -1,13 +1,8 @@
 package com.frames.screens;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.frames.R;
 import com.frames.adapters.FrameAdapter;
@@ -36,8 +31,13 @@ public class FramesScreen extends BaseScreen {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.screen_frames);
 
-        ActionBar actionBar = getSupportActionBar();
-        //actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar = getSupportActionBar();
+
+        actionBar.setHomeButtonEnabled(false); // disable the button
+        actionBar.setDisplayHomeAsUpEnabled(false); // remove the left caret
+        actionBar.setDisplayShowHomeEnabled(true); // remove the icon
+
+        actionBar.setIcon(R.drawable.ic_launcher);
 
         ImageLoader.getInstance().init(new ImageLoaderConfiguration.Builder(this)
                 .threadPriority(Thread.NORM_PRIORITY - 2)
