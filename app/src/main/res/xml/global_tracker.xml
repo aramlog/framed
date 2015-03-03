@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="TypographyDashes">
+
+    <integer name="ga_sessionTimeout">300</integer>
+    <bool name="ga_autoActivityTracking">true</bool>
+
+    <screenName name="com.frames.screens.HomeScreen">Home Screen</screenName>
+    <screenName name="com.frames.screens.FrameScreen">Frame Screen</screenName>
+
+    <string name="ga_trackingId">UA-59546414-3</string>
+</resources>

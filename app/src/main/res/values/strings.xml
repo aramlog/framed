@@ -1,7 +1,12 @@
 <resources>
-    <string name="app_name">Frames</string>
+    <string name="app_name">KIDS FRAME CAM</string>
+
+    <!--test unit id-->
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
     <string name="interstitial_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
+
+    <!--<string name="banner_ad_unit_id">ca-app-pub-6405483681529113/5499042583</string>-->
+    <!--<string name="interstitial_ad_unit_id">ca-app-pub-6405483681529113/6975775780</string>-->
 
     <string-array name="categories">
         <item>All Frames</item>

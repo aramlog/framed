@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +50,7 @@ public class FrameAdapter extends BaseAdapter {
 
     public void setItems(List<FrameItem> movies) {
         if (movies == null)
-            movies = new ArrayList<FrameItem>();
+            movies = new ArrayList<>();
         items = movies;
         notifyDataSetChanged();
     }
@@ -82,6 +81,8 @@ public class FrameAdapter extends BaseAdapter {
             holder.title = (TextView) convertView.findViewById(R.id.title);
             holder.image = (ImageView) convertView.findViewById(R.id.image);
             holder.image.setLayoutParams(new RelativeLayout.LayoutParams(columnWidth, columnHeight));
+
+            AndroidUtils.setFont(holder.title);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();

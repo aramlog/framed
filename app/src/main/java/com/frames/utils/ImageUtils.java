@@ -68,17 +68,14 @@ public class ImageUtils {
     }
 
     public static Bitmap decodeBitmap(Context context, Uri selectedImage, int reqWidth, int reqHeight) throws IOException {
-        // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         InputStream imageStream = context.getContentResolver().openInputStream(selectedImage);
         BitmapFactory.decodeStream(imageStream, null, options);
         imageStream.close();
 
-        // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
-        // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
         imageStream = context.getContentResolver().openInputStream(selectedImage);
         Bitmap img = BitmapFactory.decodeStream(imageStream, null, options);
@@ -97,7 +94,6 @@ public class ImageUtils {
     }
 
     public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
@@ -105,9 +101,6 @@ public class ImageUtils {
         if (height > reqHeight || width > reqWidth) {
             final int halfHeight = (int) (height / 1.5);
             final int halfWidth = (int) (width / 1.5);
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
             while ((halfHeight / inSampleSize) > reqHeight && (halfWidth / inSampleSize) > reqWidth) {
                 inSampleSize *= 2;
             }

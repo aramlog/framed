@@ -50,6 +50,7 @@ public class MenuItemsAdapter extends BaseAdapter {
         }
 
         TextView title = (TextView) convertView.findViewById(R.id.title);
+        AndroidUtils.setFont(title);
 
         if (position == selectedItem) {
             title.setTextColor(mContext.getResources().getColor(R.color.menu_title_selected));

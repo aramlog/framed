@@ -8,14 +8,23 @@
 
     <uses-feature android:name="android.hardware.camera" />
 
+    <meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="430579130427698"/>
+
+    <meta-data
+        android:name="com.google.android.gms.version"
+        android:value="@integer/google_play_services_version" />
+
     <application
+        android:name="com.frames.App"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".screens.MainScreen"
+            android:name=".screens.HomeScreen"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -25,17 +34,9 @@
         </activity>
 
         <activity
-            android:name=".screens.FramesScreen"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".screens.MainScreen">
-        </activity>
-
-        <activity
             android:name=".screens.FrameScreen"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".screens.FramesScreen">
+            android:screenOrientation="portrait">
         </activity>
-
 
         <activity android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"

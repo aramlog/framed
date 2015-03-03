@@ -2,14 +2,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--<fragment-->
-    <!--android:id="@+id/adFragment"-->
-    <!--android:name="com.frames.screens.BaseScreen$AdFragment"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_alignParentTop="true" />-->
-
-
     <ImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
@@ -28,87 +20,175 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:clickable="false"/>
+        android:clickable="false" />
 
-    <ImageView
-        android:id="@+id/preview"
+    <RelativeLayout
+        android:id="@+id/screen_1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="false"
-        android:background="#FFFFFF"
-        android:scaleType="centerCrop"
-        android:visibility="gone"/>
+        android:visibility="visible">
 
-    <RelativeLayout
-        android:id="@+id/camera_controllers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#A000">
-
-        <LinearLayout
+        <RelativeLayout
+            android:id="@+id/camera_controllers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="10dp">
-
-            <Button
-                android:id="@+id/cancel_camera_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cancel"
-                android:onClick="onClickCancelCamera" />
-
-            <Button
-                android:id="@+id/capture_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Capture"
-                android:onClick="onClickCapture" />
-
-            <Button
-                android:id="@+id/rotate_camera_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Rotate"
-                android:onClick="onClickRotateCamera" />
-
-        </LinearLayout>
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/filters"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#A000"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/close_filters"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Close"
-            android:onClick="onClickCloseFilters"
-            android:layout_centerVertical="true"/>
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/close_filters"
-            android:scrollbars="none"
-            android:fadingEdge="none">
+            android:layout_alignParentBottom="true">
 
             <LinearLayout
-                android:id="@+id/filters_container"
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="10dp">
 
-        </HorizontalScrollView>
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_gallery"
+                    android:onClick="onClickOpenGallery" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_camera"
+                    android:onClick="onClickCapture"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_rotate"
+                    android:onClick="onClickRotateCamera" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
     </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/screen_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+        <RelativeLayout
+            android:id="@+id/filters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/filter_bg"
+            android:paddingLeft="7dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp">
+
+            <ImageButton
+                android:id="@+id/delete_filters"
+                android:layout_width="73dp"
+                android:layout_height="46dp"
+                android:onClick="onClickDeleteFilters"
+                android:background="@drawable/button_delete_effects"
+                android:layout_marginRight="7dp"
+                android:layout_centerVertical="true" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/delete_filters"
+                android:scrollbars="none"
+                android:fadingEdge="none">
+
+                <LinearLayout
+                    android:id="@+id/filters_container"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </HorizontalScrollView>
+
+        </RelativeLayout>
+
+        <ImageButton
+            android:id="@+id/button_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_ok"
+            android:layout_alignParentRight="true"
+            android:layout_margin="20dp"
+            android:onClick="onClickOk" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/screen_3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        android:background="@color/header_bg">
+
+        <fragment
+            android:id="@+id/adFragmentBanner"
+            android:name="com.frames.screens.BaseScreen$AdBannerFragment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/adFragmentBanner">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#FFFFFF"
+                android:layout_margin="30dp">
+
+                <ImageView
+                    android:id="@+id/preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="7dp"
+                    android:clickable="false"
+                    android:background="#FFFFFF"
+                    android:scaleType="centerCrop" />
+
+            </RelativeLayout>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_edit"
+                android:layout_alignParentRight="true"
+                android:layout_margin="10dp"
+                android:onClick="onClickEdit" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_home"
+                android:layout_alignParentLeft="true"
+                android:layout_margin="10dp"
+                android:onClick="onClickHome" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_share"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_margin="10dp"
+                android:onClick="onClickShare" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <fragment
+        android:id="@+id/adFragmentInterstitial"
+        android:name="com.frames.screens.BaseScreen$AdInterstitialFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
 </RelativeLayout>

@@ -1,24 +1,26 @@
 package com.frames.screens;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.frames.R;
@@ -36,15 +38,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import cn.Ragnarok.BitmapFilter;
 
 public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, Camera.PictureCallback {
 
-    // original frame dimensions
+    // original frame dimensions 640x854
+
     private int FRAME_WIDTH = 640;
     private int FRAME_HEIGHT = 854;
 
@@ -53,7 +54,6 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
     private int SCREEN_HEIGHT = 1760;
 
     private int GALLERY_PIC_REQUEST = 6000;
-    private boolean renderFilters = true;
 
     private ImageView image;
     private ImageView frame;
@@ -70,42 +70,43 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
 
     private Bitmap frameBitmap;
     private Bitmap imageBitmap;
+    private Bitmap filteredBitmap;
     private Bitmap imageBitmapThumb;
+    private Bitmap savedBitmap;
 
-//    private static Map<Integer, String> filters = new HashMap<>();
-//
-//    static {
-//        filters.put(BitmapFilter.GRAY_STYLE, "gray scale");
-//        filters.put(BitmapFilter.OIL_STYLE, "painting");
-//        filters.put(BitmapFilter.BLOCK_STYLE, "block");
-//        filters.put(BitmapFilter.SKETCH_STYLE, "sketch");
-//        filters.put(BitmapFilter.OLD_STYLE, "aged");
-//        filters.put(BitmapFilter.SHARPEN_STYLE, "sharpen");
-//        filters.put(BitmapFilter.SHARPEN_STYLE, "sharpen");
-//        filters.put(BitmapFilter.LIGHT_STYLE, "light");
-//        filters.put(BitmapFilter.LOMO_STYLE, "lomo");
-//        filters.put(BitmapFilter.HDR_STYLE, "hdr");
-//    }
-//
-//    ;
+    private int currentScreen = 1;
+
+    private RelativeLayout screen1;
+    private RelativeLayout screen2;
+    private RelativeLayout screen3;
+
+    private String frameURL;
+    private File savedFile;
+    private ProgressDialog progressDialog;
+
+    private boolean loadFilters = true;
+
+    private String saveImageName = "image_" + System.currentTimeMillis() + ".jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.screen_frame);
 
+        googleAnalytics("FrameScreen");
+
+        adBannerFragment = (AdBannerFragment) getFragmentManager().findFragmentById(R.id.adFragmentBanner);
+        adInterstitialFragment = (AdInterstitialFragment) getFragmentManager().findFragmentById(R.id.adFragmentInterstitial);
+        adInterstitialFragment.setTimer(false);
+
         SCREEN_WIDTH = AndroidUtils.getScreenWidth(this);
         SCREEN_HEIGHT = AndroidUtils.getScreenHeight(this);
 
-        actionBar = getSupportActionBar();
+        frameURL = getIntent().getStringExtra("url");
 
-        actionBar.setHomeButtonEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(false);
-        actionBar.setDisplayShowHomeEnabled(false);
-
-        String frameURL = getIntent().getStringExtra("url");
-        actionBar.setTitle(getIntent().getStringExtra("title"));
-        actionBar.setSubtitle(getIntent().getStringExtra("subtitle"));
+        screen1 = (RelativeLayout) findViewById(R.id.screen_1);
+        screen2 = (RelativeLayout) findViewById(R.id.screen_2);
+        screen3 = (RelativeLayout) findViewById(R.id.screen_3);
 
         image = (ImageView) findViewById(R.id.image);
         frame = (ImageView) findViewById(R.id.frame);
@@ -126,40 +127,88 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
             }
         });
 
-        ImageLoader.getInstance().loadImage(frameURL, new ImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String s, View view, Bitmap bitmap) {
-                frameBitmap = bitmap;
-            }
+        progressDialog = ProgressDialog.show(this, "Please wait ...", "Loading Frame ...", true);
 
-            @Override
-            public void onLoadingStarted(String s, View view) {
-            }
-
-            @Override
-            public void onLoadingFailed(String s, View view, FailReason failReason) {
-            }
-
-            @Override
-            public void onLoadingCancelled(String s, View view) {
-            }
-        });
+        ImageLoader.getInstance().loadImage(frameURL, imageLoadingListener);
         ImageLoader.getInstance().displayImage(frameURL, frame, AppManager.getInstance().options);
 
-        cameraContainer.setVisibility(View.GONE);
-        cameraControllers.setVisibility(View.GONE);
-        filtersLayout.setVisibility(View.GONE);
+        openScreen1();
+    }
+
+    private ImageLoadingListener imageLoadingListener = new ImageLoadingListener() {
+        @Override
+        public void onLoadingComplete(String s, View view, Bitmap bitmap) {
+            frameBitmap = bitmap;
+            progressDialog.dismiss();
+        }
+
+        @Override
+        public void onLoadingFailed(String s, View view, FailReason failReason) {
+            progressDialog.dismiss();
+            showNoNetworkDialog(new DialogHandler() {
+                @Override
+                public void positive() {
+                    ImageLoader.getInstance().loadImage(frameURL, imageLoadingListener);
+                }
+
+                @Override
+                public void negative() {
+                    finish();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                }
+            });
+        }
+
+        @Override
+        public void onLoadingCancelled(String s, View view) {
+            progressDialog.dismiss();
+        }
+
+        @Override
+        public void onLoadingStarted(String s, View view) {
+        }
+    };
+
+    private void openScreen1() {
+        screen1.setVisibility(View.VISIBLE);
+        screen2.setVisibility(View.GONE);
+        screen3.setVisibility(View.GONE);
+
+        frame.setAlpha(0.5f);
+        currentScreen = 1;
+        openCamera();
+    }
+
+    private void openScreen2() {
+        screen1.setVisibility(View.GONE);
+        screen2.setVisibility(View.VISIBLE);
+        screen3.setVisibility(View.GONE);
+
+        frame.setAlpha(1.0f);
+        currentScreen = 2;
+        cancelCamera();
+        showFilters();
+    }
+
+    private void openScreen3() {
+        screen1.setVisibility(View.GONE);
+        screen2.setVisibility(View.GONE);
+        screen3.setVisibility(View.VISIBLE);
+
+        currentScreen = 3;
     }
 
     private void openCamera() {
-        cameraMenu.setEnabled(false);
         cameraContainer.setVisibility(View.VISIBLE);
         cameraControllers.setVisibility(View.VISIBLE);
         cameraPreview.startCamera();
-        frame.setAlpha(0.5f);
     }
 
-    private void openGallery() {
+    public void onClickEdit(View v) {
+        openScreen2();
+    }
+
+    public void onClickOpenGallery(View v) {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), GALLERY_PIC_REQUEST);
@@ -173,17 +222,103 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
         cameraPreview.getCamera().takePicture(FrameScreen.this, null, null, FrameScreen.this);
     }
 
-    public void onClickCancelCamera(View v) {
+    public void onClickDeleteFilters(View v) {
+        filteredBitmap = null;
+        image.setImageBitmap(imageBitmap);
+    }
+
+    public void onClickOk(View v) {
+        progressDialog = ProgressDialog.show(FrameScreen.this, "Please wait ...", "Saving Image ...", true);
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    int imageHeight = image.getHeight();
+                    int imageWidth = image.getWidth();
+
+                    savedBitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+                    Bitmap google = BitmapFactory.decodeResource(getResources(), R.drawable.google);
+                    Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.logo_small);
+
+                    int logoHeight = logo.getHeight();
+                    int logoWidth = logo.getWidth();
+
+                    int googleHeight = google.getHeight();
+                    int googleWidth = google.getWidth();
+
+                    int margin = AndroidUtils.dpToPx(3);
+
+                    Canvas canvas = new Canvas(savedBitmap);
+                    canvas.drawColor(Color.WHITE);
+
+                    Matrix imageMatrix = image.getImageMatrix();
+                    Matrix frameMatrix = frame.getImageMatrix();
+
+                    canvas.drawBitmap(filteredBitmap == null ? imageBitmap : filteredBitmap, imageMatrix, null);
+                    canvas.drawBitmap(frameBitmap, frameMatrix, null);
+
+                    Paint paint = new Paint();
+                    paint.setColor(getResources().getColor(R.color.filter_bg));
+                    canvas.drawRect(0, imageHeight, imageWidth, imageHeight - logoHeight - 2 * margin, paint);
+
+                    paint.setColor(getResources().getColor(R.color.header_title));
+                    paint.setTextSize(logoHeight - 2 * margin);
+                    canvas.drawText(getString(R.string.app_name), logoWidth + 2 * margin, imageHeight - 2 * margin, paint);
+
+                    Matrix googleMatrix = new Matrix();
+                    googleMatrix.postTranslate(imageWidth - googleWidth - margin, imageHeight - googleHeight - margin);
+                    canvas.drawBitmap(google, googleMatrix, null);
+
+                    Matrix logoMatrix = new Matrix();
+                    logoMatrix.postTranslate(margin, imageHeight - logoHeight - margin);
+                    canvas.drawBitmap(logo, logoMatrix, null);
+
+                    File root = Environment.getExternalStorageDirectory();
+                    File dir = new File(root.getAbsolutePath() + "/Kids Frame Cam");
+                    if (!dir.exists()) dir.mkdirs();
+                    savedFile = new File(dir, saveImageName);
+                    FileOutputStream out = new FileOutputStream(savedFile);
+                    savedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                    out.flush();
+                    out.close();
+
+                } catch (Exception e) {
+
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        preview.setImageBitmap(savedBitmap);
+                        preview.setVisibility(View.VISIBLE);
+                        progressDialog.dismiss();
+                        savedBitmap = null;
+                        adInterstitialFragment.displayAd();
+                        openScreen3();
+                        Toast.makeText(FrameScreen.this, "Image has been successfully saved in gallery.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }.start();
+    }
+
+
+    public void onClickHome(View v) {
+        finish();
+    }
+
+    public void onClickShare(View v) {
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("image/*");
+        share.putExtra(Intent.EXTRA_TEXT, getString(R.string.app_name));
+        share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(savedFile));
+        startActivity(Intent.createChooser(share, "Share via"));
+    }
+
+    public void cancelCamera() {
         cameraPreview.releaseCamera();
         cameraContainer.setVisibility(View.GONE);
         cameraControllers.setVisibility(View.GONE);
-        cameraMenu.setEnabled(true);
-        frame.setAlpha(1.0f);
-    }
-
-    public void onClickCloseFilters(View v) {
-        filtersLayout.setVisibility(View.GONE);
-        effectsMenu.setEnabled(true);
     }
 
     @Override
@@ -194,15 +329,18 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
     public void onPictureTaken(byte[] data, Camera camera) {
         camera.stopPreview();
         Matrix imageMatrix = new Matrix();
-        imageBitmap = ImageUtils.decodeBitmap(data, SCREEN_WIDTH, SCREEN_HEIGHT);
-        imageBitmapThumb = ImageUtils.decodeBitmap(data, 200, 200);
+        imageBitmap = ImageUtils.decodeBitmap(data, FRAME_WIDTH, FRAME_HEIGHT);
+        imageBitmapThumb = ImageUtils.decodeBitmap(data, AndroidUtils.dpToPx(73), AndroidUtils.dpToPx(73));
         if (cameraPreview.isFront()) {
             imageBitmap = ImageUtils.flipBitmap(ImageUtils.rotateBitmap(imageBitmap, 270));
             imageBitmapThumb = ImageUtils.flipBitmap(ImageUtils.rotateBitmap(imageBitmapThumb, 270));
         } else {
             imageBitmap = ImageUtils.rotateBitmap(imageBitmap, 90);
             imageBitmapThumb = ImageUtils.rotateBitmap(imageBitmapThumb, 90);
-            imageMatrix.postTranslate(-Math.abs(SCREEN_WIDTH - imageBitmap.getWidth()) / 2, 0);
+
+            float scale = (float)SCREEN_HEIGHT/imageBitmap.getHeight();
+            imageMatrix.postTranslate(-Math.abs(SCREEN_WIDTH - scale * imageBitmap.getWidth()) / 2, 0);
+            imageMatrix.postScale(scale, scale);
         }
 
         image.setImageBitmap(imageBitmap);
@@ -210,10 +348,9 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
         multiTouchImage.reset();
         multiTouchImage.setMatrix(imageMatrix);
 
-        onClickCancelCamera(null);
-        showSecondActionButtons();
-
-        renderFilters = true;
+        filteredBitmap = null;
+        loadFilters = true;
+        openScreen2();
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -221,22 +358,19 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
             try {
                 Uri imageUri = data.getData();
 
-                imageBitmap = ImageUtils.decodeBitmap(this, imageUri, SCREEN_WIDTH, SCREEN_HEIGHT);
-                imageBitmapThumb = ImageUtils.decodeBitmap(this, imageUri, 200, 200);
+                imageBitmap = ImageUtils.decodeBitmap(this, imageUri, FRAME_WIDTH, FRAME_HEIGHT);
+                imageBitmapThumb = ImageUtils.decodeBitmap(this, imageUri, AndroidUtils.dpToPx(73), AndroidUtils.dpToPx(73));
 
                 cameraContainer.setVisibility(View.GONE);
                 cameraControllers.setVisibility(View.GONE);
 
-                frame.setAlpha(1.0f);
                 image.setImageBitmap(imageBitmap);
                 image.setImageMatrix(new Matrix());
                 multiTouchImage.reset();
 
-                onClickCancelCamera(null);
-                showSecondActionButtons();
-
-                renderFilters = true;
-
+                filteredBitmap = null;
+                loadFilters = true;
+                openScreen2();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -245,42 +379,9 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
         }
     }
 
-    private void showFirstActionButtons() {
-        cameraMenu.setVisible(true);
-        galleryMenu.setVisible(true);
-
-        editMenu.setVisible(false);
-        shareMenu.setVisible(false);
-        effectsMenu.setVisible(false);
-        doneMenu.setVisible(false);
-        cancelMenu.setVisible(false);
-    }
-
-    private void showSecondActionButtons() {
-        cameraMenu.setVisible(false);
-        galleryMenu.setVisible(false);
-        editMenu.setVisible(false);
-        shareMenu.setVisible(false);
-
-        effectsMenu.setVisible(true);
-        doneMenu.setVisible(true);
-        cancelMenu.setVisible(true);
-    }
-
-    private void showThirdActionButtons() {
-        cameraMenu.setVisible(false);
-        galleryMenu.setVisible(false);
-        effectsMenu.setVisible(false);
-        doneMenu.setVisible(false);
-        cancelMenu.setVisible(false);
-
-        editMenu.setVisible(true);
-        shareMenu.setVisible(true);
-    }
-
     private void showFilters() {
-        if (renderFilters) {
-            renderFilters = false;
+        if (loadFilters) {
+            loadFilters = false;
             filtersContainer.removeAllViews();
 
             List<Integer> filters = new ArrayList<>();
@@ -296,16 +397,17 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
             filters.add(BitmapFilter.HDR_STYLE);
 
             for (final Integer filter : filters) {
-                RelativeLayout itemFilterThumb = (RelativeLayout) getLayoutInflater().inflate(R.layout.item_filter_thumb, filtersContainer, false);
-                itemFilterThumb.setLayoutParams(new LinearLayout.LayoutParams(AndroidUtils.dpToPx(70), AndroidUtils.dpToPx(70)));
-                final ImageView filterImage = (ImageView) itemFilterThumb.findViewById(R.id.filter_image);
+                final ImageView filterImage = new ImageView(this);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(AndroidUtils.dpToPx(73), AndroidUtils.dpToPx(46));
+                params.setMargins(0, 0, AndroidUtils.dpToPx(7), 0);
+                filterImage.setLayoutParams(params);
 
                 new Thread() {
                     @Override
                     public void run() {
-                        super.run();
-                        final Bitmap bitmap = applyStyle(filter, imageBitmapThumb);
                         runOnUiThread(new Runnable() {
+                            final Bitmap bitmap = applyStyle(filter, imageBitmapThumb);
+
                             @Override
                             public void run() {
                                 filterImage.setImageBitmap(bitmap);
@@ -318,11 +420,24 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
                 filterImage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        imageBitmap = applyStyle(filter, imageBitmap);
-                        image.setImageBitmap(imageBitmap);
+                        progressDialog = ProgressDialog.show(FrameScreen.this, "Please wait ...", "Applying Effect ...", true);
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                filteredBitmap = applyStyle(filter, imageBitmap);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        image.setImageBitmap(filteredBitmap);
+                                        progressDialog.dismiss();
+                                    }
+                                });
+                            }
+                        }.start();
+
                     }
                 });
-                filtersContainer.addView(itemFilterThumb);
+                filtersContainer.addView(filterImage);
             }
             filtersLayout.setVisibility(View.VISIBLE);
         }
@@ -330,7 +445,6 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
 
     private Bitmap applyStyle(int styleNo, Bitmap originalBitmap) {
         Bitmap changeBitmap;
-
         switch (styleNo) {
             case BitmapFilter.AVERAGE_BLUR_STYLE:
                 changeBitmap = BitmapFilter.changeStyle(originalBitmap, BitmapFilter.AVERAGE_BLUR_STYLE, 5); // maskSize, must odd
@@ -365,40 +479,7 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
                 changeBitmap = BitmapFilter.changeStyle(originalBitmap, styleNo);
                 break;
         }
-
         return changeBitmap;
-    }
-
-    private void saveBitmap() {
-        try {
-            Bitmap bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
-            Bitmap watermark = BitmapFactory.decodeResource(getResources(), R.drawable.watermark);
-            Canvas c = new Canvas(bitmap);
-
-            Matrix imageMatrix = image.getImageMatrix();
-            Matrix frameMatrix = frame.getImageMatrix();
-            Matrix watermarkMatrix = new Matrix();
-            watermarkMatrix.postTranslate(image.getWidth() - watermark.getWidth(), image.getHeight() - watermark.getHeight());
-
-            c.drawBitmap(imageBitmap, imageMatrix, null);
-            c.drawBitmap(frameBitmap, frameMatrix, null);
-            c.drawBitmap(watermark, watermarkMatrix, null);
-
-            preview.setImageBitmap(bitmap);
-            preview.setVisibility(View.VISIBLE);
-
-            File root = Environment.getExternalStorageDirectory();
-            File dir = new File(root.getAbsolutePath() + "/Frames");
-            if (!dir.exists()) dir.mkdirs();
-            File file = new File(dir, "framed.jpg");
-            FileOutputStream out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
-
-        } catch (Exception e) {
-
-        }
     }
 
     @Override
@@ -408,45 +489,20 @@ public class FrameScreen extends BaseScreen implements Camera.ShutterCallback, C
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_camera:
-                openCamera();
-                return true;
-            case R.id.action_gallery:
-                openGallery();
-                return true;
-            case R.id.action_effects:
-                effectsMenu.setEnabled(false);
-                showFilters();
-                return true;
-            case R.id.action_edit:
-                showSecondActionButtons();
-                onClickCloseFilters(null);
-                preview.setImageBitmap(null);
-                preview.setVisibility(View.GONE);
-                return true;
-            case R.id.action_share:
-                Toast.makeText(this, "Share", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.action_cancel:
-                showFirstActionButtons();
-                onClickCloseFilters(null);
-                image.setImageBitmap(null);
-                return true;
-            case R.id.action_done:
-                saveBitmap();
-                showThirdActionButtons();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            switch (currentScreen) {
+                case 1:
+                    finish();
+                    return true;
+                case 2:
+                    openScreen1();
+                    return false;
+                case 3:
+                    openScreen2();
+                    return false;
+            }
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        showFirstActionButtons();
-        return true;
+        return false;
     }
 }

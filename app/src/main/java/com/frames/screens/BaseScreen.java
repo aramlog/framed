@@ -1,36 +1,32 @@
 package com.frames.screens;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.os.CountDownTimer;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.frames.App;
 import com.frames.R;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BaseScreen extends ActionBarActivity {
+public class BaseScreen extends Activity {
 
-    protected MenuItem cameraMenu;
-    protected MenuItem galleryMenu;
-    protected MenuItem editMenu;
-    protected MenuItem shareMenu;
-    protected MenuItem effectsMenu;
-    protected MenuItem doneMenu;
-    protected MenuItem cancelMenu;
+    protected static Map<Integer, String> categories = new HashMap<>();
 
-    protected ActionBar actionBar;
-
-    protected static Map<Integer, String> categories = new HashMap<Integer, String>();
+    protected AdBannerFragment adBannerFragment;
+    protected AdInterstitialFragment adInterstitialFragment;
 
     static {
         categories.put(1, "Adult Humor");
@@ -50,42 +46,137 @@ public class BaseScreen extends ActionBarActivity {
         categories.put(15, "When I Grow Up");
     }
 
-    public static class AdFragment extends Fragment {
+    protected void googleAnalytics(String screenName) {
+        try {
+            Tracker tracker = ((App) getApplication()).getTracker();
+            tracker.setScreenName(screenName);
+            tracker.send(new HitBuilders.AppViewBuilder().build());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static class AdBannerFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            return inflater.inflate(R.layout.layout_ad, container, false);
+            return inflater.inflate(R.layout.ad_banner, container, false);
         }
 
         @Override
         public void onActivityCreated(Bundle bundle) {
             super.onActivityCreated(bundle);
+
             AdView mAdView = (AdView) getView().findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+    public static class AdInterstitialFragment extends Fragment {
+        private InterstitialAd mInterstitialAd;
+        private CountDownTimer mCountDownTimer;
+        private boolean timer = true;
 
-        cameraMenu = menu.findItem(R.id.action_camera);
-        galleryMenu = menu.findItem(R.id.action_gallery);
-        editMenu = menu.findItem(R.id.action_edit);
-        shareMenu = menu.findItem(R.id.action_share);
-        effectsMenu = menu.findItem(R.id.action_effects);
-        doneMenu = menu.findItem(R.id.action_done);
-        cancelMenu = menu.findItem(R.id.action_cancel);
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.ad_interstitial, container, false);
+        }
 
-        cameraMenu.setVisible(false);
-        galleryMenu.setVisible(false);
-        editMenu.setVisible(false);
-        shareMenu.setVisible(false);
-        effectsMenu.setVisible(false);
-        doneMenu.setVisible(false);
-        cancelMenu.setVisible(false);
+        @Override
+        public void onActivityCreated(Bundle savedInstanceState) {
+            super.onActivityCreated(savedInstanceState);
+            initTimer();
+            initAd();
+        }
 
-        return super.onCreateOptionsMenu(menu);
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (mCountDownTimer == null) {
+                initTimer();
+            }
+            loadAd();
+            mCountDownTimer.start();
+        }
+
+        @Override
+        public void onPause() {
+            if (mCountDownTimer != null) {
+                mCountDownTimer.cancel();
+            }
+            super.onPause();
+        }
+
+        private void initAd() {
+            mInterstitialAd = new InterstitialAd(getActivity());
+            mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
+        }
+
+        public void loadAd() {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            if (mInterstitialAd != null) {
+                mInterstitialAd.loadAd(adRequest);
+            }
+        }
+
+        public void displayAd() {
+            if (mInterstitialAd != null && mInterstitialAd.isLoaded()) {
+                mInterstitialAd.show();
+                if (!timer) {
+                    mInterstitialAd = null;
+                    mCountDownTimer.cancel();
+                }
+            } else {
+                loadAd();
+                mCountDownTimer.start();
+            }
+        }
+
+        private void initTimer() {
+            mCountDownTimer = new CountDownTimer(60000, 1000) {
+                @Override
+                public void onTick(long millisUnitFinished) {
+                }
+
+                @Override
+                public void onFinish() {
+                    if (timer) {
+                        displayAd();
+                    }
+                }
+            };
+        }
+
+        public boolean isTimer() {
+            return timer;
+        }
+
+        public void setTimer(boolean timer) {
+            this.timer = timer;
+        }
     }
+
+    protected void showNoNetworkDialog(final DialogHandler handler) {
+        new AlertDialog.Builder(this)
+                .setTitle("Connection Error")
+                .setMessage("Please check your network connection and try again.")
+                .setCancelable(false)
+                .setPositiveButton("Try again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        handler.positive();
+                    }
+                })
+                .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        handler.negative();
+                    }
+                }).create().show();
+    }
+
+    public static interface DialogHandler {
+        public void positive();
+
+        public void negative();
+    }
+
 }

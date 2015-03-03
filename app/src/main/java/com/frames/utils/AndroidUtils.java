@@ -17,11 +17,6 @@ import java.lang.reflect.Method;
 
 public class AndroidUtils {
 
-    public static  void scaleViewToDp(View view, int width, int height) {
-        view.getLayoutParams().width = dpToPx(width);
-        view.getLayoutParams().height = dpToPx(height);
-    }
-
     public static int pxToDp(int px) {
         return (int) (px / Resources.getSystem().getDisplayMetrics().density);
     }
@@ -51,7 +46,7 @@ public class AndroidUtils {
     }
 
     public static void setFont(TextView textView) {
-        Typeface tf = Typeface.createFromAsset(textView.getContext().getAssets(), "font/ProximaNova-Reg.otf");
+        Typeface tf = Typeface.createFromAsset(textView.getContext().getAssets(), "font/PapaBear.ttf");
         textView.setTypeface(tf);
     }
 
@@ -66,7 +61,7 @@ public class AndroidUtils {
     }
 
     public static void changeChildrenFont(Context context, ViewGroup v){
-        Typeface font = Typeface.createFromAsset(context.getAssets(), "font/ProximaNova-Reg.otf");
+        Typeface font = Typeface.createFromAsset(context.getAssets(), "font/PapaBear.ttf");
         for(int i = 0; i < v.getChildCount(); i++){
             if(v.getChildAt(i) instanceof ViewGroup){
                 changeChildrenFont(context,(ViewGroup) v.getChildAt(i));

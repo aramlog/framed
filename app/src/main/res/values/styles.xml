@@ -3,18 +3,6 @@
 <resources>
 
     <style name="AppTheme" parent="@style/Theme.AppCompat">
-        <item name="actionBarStyle">@style/Framed.ActionBar</item>
-        <!--<item name="homeAsUpIndicator">@drawable/ab_back</item>-->
-    </style>
-
-    <style name="Framed.ActionBar" parent="@style/Widget.AppCompat.ActionBar.Solid">
-        <item name="background">@drawable/ab_background</item>
-        <item name="android:titleTextStyle">@style/Framed.ActionBar.TitleText</item>
-
-    </style>
-
-    <style name="Framed.ActionBar.TitleText" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
-        <item name="android:textColor">#FFFFFF</item>
     </style>
 
     <color name="header_bg">#153450</color>
@@ -22,10 +10,11 @@
     <color name="menu_bg">#0b1f30</color>
     <color name="menu_bg_selected">#112b42</color>
     <color name="menu_item_bg">#0b1f30</color>
-    <color name="menu_item_separator">#394653</color>
+    <color name="menu_item_separator">#102b42</color>
     <color name="menu_title">#ffffff</color>
     <color name="menu_title_selected">#ed913e</color>
     <color name="bg">#e0ddd2</color>
+    <color name="filter_bg">#E6051829</color>
     <color name="frame_title">#0b1f30</color>
 
 </resources>
